@@ -35,13 +35,13 @@ public final class BlockRespawn extends JavaPlugin {
         if(command.getName().equalsIgnoreCase("saltyblockrespawn")){
 
             if(args.length == 0){
-                sender.sendMessage(Objects.requireNonNull(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload.")));
+                sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
                 return true;
             }
             if(args[0].equalsIgnoreCase("reload")){
                 if(!sender.hasPermission("saltyblockrespawn.reload")){
                     if(loader.getLangConfig().getString("no-permission-reload") != null){
-                        sender.sendMessage(Objects.requireNonNull(loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!")));
+                        sender.sendMessage(loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!"));
                     }
                     return true;
                 }
@@ -50,11 +50,11 @@ public final class BlockRespawn extends JavaPlugin {
             loader = new Loader(this);
             loader.load();
 
-            sender.sendMessage(Objects.requireNonNull(loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!")));
+            sender.sendMessage(loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!"));
             return true;
 
         }
-        sender.sendMessage(Objects.requireNonNull(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload.")));
+        sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
         return true;
     }
 
