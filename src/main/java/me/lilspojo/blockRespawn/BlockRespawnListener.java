@@ -25,10 +25,12 @@ import java.util.stream.Collectors;
 public class BlockRespawnListener implements Listener {
 
     private final BlockRespawn plugin;
+    private final CrashProtection crashProtection;
 
     public BlockRespawnListener(BlockRespawn plugin){
 
         this.plugin = plugin;
+        this.crashProtection = new CrashProtection(plugin);
 
     }
 
@@ -108,9 +110,11 @@ public class BlockRespawnListener implements Listener {
 
                 if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
                     plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
+                    // Crash protection is handled within onBlockBrokenAsPrimary.
                 }
                 else{
                     plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
+                    crashProtection.AddToCrashProt(block, type, blockData);
                 }
                 break;
             }

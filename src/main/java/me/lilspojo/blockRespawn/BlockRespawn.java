@@ -29,6 +29,8 @@ public final class BlockRespawn extends JavaPlugin {
         respawnManager = new RespawnManager(this);
 
         getServer().getPluginManager().registerEvents(new BlockRespawnListener(this), this);
+        CrashProtection crashProtection = new CrashProtection(this);
+        crashProtection.RunCrashProt();
         getLogger().info("Enabled SaltyBlockRespawn!");
 
     }

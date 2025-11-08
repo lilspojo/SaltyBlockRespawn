@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RespawnManager {
 
     private final JavaPlugin plugin;
+    private final CrashProtection crashProtection;
 
     private static class PendingRespawn {
         final BukkitTask task;
@@ -31,6 +32,7 @@ public class RespawnManager {
 
     public RespawnManager(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.crashProtection = new CrashProtection(plugin);
     }
 
     public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement){
@@ -38,11 +40,11 @@ public class RespawnManager {
 
             block.setType(replaceMaterial);
 
-
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (!checkReplacement || block.getType()== replaceMaterial) {
                     block.setType(originalMaterial);
                     block.setBlockData(originalData, false);
+                    crashProtection.RemoveFromCrashProt(block, originalMaterial, originalData);
                 }
             }, delay);
 
@@ -73,7 +75,10 @@ public class RespawnManager {
                 return;
             }
 
-            Bukkit.getScheduler().runTask(plugin, () -> block.setType(replaceMaterial));
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                block.setType(replaceMaterial);
+                crashProtection.AddToCrashProt(block, originalMaterial, originalData);
+            });
 
             BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 // Remove the entry before doing the respawn so new breaks can be primary.
@@ -83,6 +88,7 @@ public class RespawnManager {
                 if (block.getLocation().getBlock().getType() == replaceMaterial || !checkReplacement) {
                     block.getLocation().getBlock().setType(originalMaterial);
                     block.getLocation().getBlock().setBlockData(originalData, false);
+                    crashProtection.RemoveFromCrashProt(block, originalMaterial, originalData);
                 }
             }, delay);
 
