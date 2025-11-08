@@ -1,4 +1,0 @@
-command-usage: "Usage: /saltyblockrespawn reload"
-
-no-permission-reload: "You don't have permission to perform this command!"
-reload: "Reloaded SaltyBlockRespawn configuration files!"
