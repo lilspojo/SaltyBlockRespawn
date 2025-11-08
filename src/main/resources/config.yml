@@ -1,3 +1,7 @@
+# You can toggle block respawning in creative mode per player via the permission saltyblockrespawn.creativerespawn.
+
+# Prevents the original block from being overwritten by subsequent respawns.
+prevent-overwrite: true
 # Regions listed here will have their own configuration sections in the regions folder.
 regions:
   - "example_region"

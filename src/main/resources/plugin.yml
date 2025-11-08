@@ -13,6 +13,9 @@ permissions:
   saltyblockrespawn.reload:
     description: Allows reloading SaltyBlockRespawn
     default: op
+  saltyblockrespawn.creativerespawn:
+    description: Toggle block respawn in creative mode.
+    default: true
 depend:
   - WorldGuard
   - WorldEdit

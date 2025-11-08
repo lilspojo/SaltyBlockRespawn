@@ -31,6 +31,13 @@ public class Loader {
         loadRegionConfigs();
         plugin.getLogger().info("Loaded SaltyBlockRespawn configuration.");
     }
+    public void reload() {
+        plugin.reloadConfig();
+        reloadLangConfig();
+        createRegionsConfig();
+        loadRegionConfigs();
+        plugin.getLogger().info("Loaded SaltyBlockRespawn configuration.");
+    }
 
     private void createLangConfig() {
         langFile = new File(plugin.getDataFolder(), "lang.yml");
@@ -79,11 +86,6 @@ public class Loader {
     private void reloadLangConfig() {
         if (langFile == null) langFile = new File(plugin.getDataFolder(), "lang.yml");
         langConfig = YamlConfiguration.loadConfiguration(langFile);
-    }
-
-    private void reloadRegionConfigs() {
-        regionConfigs.clear();
-        loadRegionConfigs();
     }
 
     public FileConfiguration getLangConfig() {

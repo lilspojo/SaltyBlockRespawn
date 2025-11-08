@@ -4,16 +4,18 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Objects;
-
 
 
 public final class BlockRespawn extends JavaPlugin {
 
     private Loader loader;
+    private RespawnManager respawnManager;
 
     public Loader getLoader() {
         return loader;
+    }
+    public RespawnManager getRespawnManager() {
+        return respawnManager;
     }
 
     @Override
@@ -24,8 +26,9 @@ public final class BlockRespawn extends JavaPlugin {
         loader = new Loader(this);
         loader.load();
 
-        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this), this);
+        respawnManager = new RespawnManager(this);
 
+        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this), this);
         getLogger().info("Enabled SaltyBlockRespawn!");
 
     }
@@ -48,7 +51,8 @@ public final class BlockRespawn extends JavaPlugin {
             }
 
             loader = new Loader(this);
-            loader.load();
+            loader.reload();
+
 
             sender.sendMessage(loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!"));
             return true;
@@ -62,6 +66,8 @@ public final class BlockRespawn extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         getLogger().info("Disabling SaltyBlockRespawn...");
+        // Clean up pending respawn tasks.
+        if (respawnManager != null) respawnManager.cancelAll();
 
     }
 }
