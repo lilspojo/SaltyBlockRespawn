@@ -1,0 +1,18 @@
+name: SaltyBlockRespawn
+version: '1.0-SNAPSHOT'
+main: me.lilspojo.blockRespawn.BlockRespawn
+api-version: '1.21'
+author: lilspojo
+website: www.saltyuniverse.net
+description: A basic block respawn plugin.
+commands:
+  saltyblockrespawn:
+    description: Root command for SaltyBlockRespawn.
+    usage: /<command> <reload>
+permissions:
+  saltyblockrespawn.reload:
+    description: Allows reloading SaltyBlockRespawn
+    default: op
+depend:
+  - WorldGuard
+  - WorldEdit
