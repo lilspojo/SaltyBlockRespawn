@@ -1,4 +1,3 @@
-// LocationKey.java
 package me.lilspojo.blockRespawn;
 
 import org.bukkit.Location;

@@ -9,11 +9,16 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class BlockRespawnListener implements Listener {
@@ -54,28 +59,60 @@ public class BlockRespawnListener implements Listener {
             if (!isBlockInRegion(block, regionName)) continue;
 
             FileConfiguration blocks = plugin.getLoader().getRegionConfig(regionName);
-            if (blocks == null || !blocks.contains("blocks." + type.name())) continue;
 
-            String replace = blocks.getString("blocks." + type.name() + ".replace", "AIR");
-            int delay = blocks.getInt("blocks." + type.name() + ".delay");
-
-            Material replaceMaterial;
-            try {
-                replaceMaterial = Material.valueOf(replace);
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
-                return;
+            ConfigurationSection blocksSection = blocks.getConfigurationSection("blocks");
+            if (blocks.getConfigurationSection("blocks") == null) {
+                plugin.getLogger().warning("No 'blocks' section in region config: " + regionName);
+                continue;
             }
 
-            boolean checkReplacement = blocks.getBoolean("blocks." + type.name() + ".check-if-replacement", false);
+            for (String key : blocksSection.getKeys(false)) {
+                ConfigurationSection blockGroup = blocksSection.getConfigurationSection(key);
+                if (blockGroup == null) continue;
+                Object typeObj = blockGroup.get("type");
+                List<String> types;
 
-            if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
-                plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, replaceMaterial, delay, checkReplacement);
+                if (typeObj instanceof List) {
+                    types = ((List<?>) typeObj).stream()
+                            .map(Object::toString)
+                            .collect(Collectors.toList());
+                } else if (typeObj != null){
+                    types = Collections.singletonList(typeObj.toString());
+                } else {
+                    plugin.getLogger().warning("No 'type' defined in block group '" + key + "' for region " + regionName);
+                    continue;
+                }
+
+                // Check is block type is listed.
+                if (!types.contains(type.name())) continue;
+
+                // Read block replacement properties.
+                String replace = blockGroup.getString("replace");
+                int delay = blockGroup.getInt("delay", 0);
+                boolean checkReplacement = blockGroup.getBoolean("check-if-replacement", false);
+
+                if (replace == null || replace.isEmpty()) {
+                    plugin.getLogger().warning("Missing 'replace' value in region " + regionName + " for group " + key);
+                    continue;
+                }
+
+                Material replaceMaterial;
+                try {
+                    replaceMaterial = Material.valueOf(replace);
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
+                    return;
+                }
+
+                if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
+                    plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, replaceMaterial, delay, checkReplacement);
+                }
+                else{
+                    plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, replaceMaterial, delay, checkReplacement);
+                }
+                break;
             }
-            else{
-                plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, replaceMaterial, delay, checkReplacement);
-            }
-            break;
+
         }
 
     }

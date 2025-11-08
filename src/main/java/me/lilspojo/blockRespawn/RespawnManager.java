@@ -1,4 +1,3 @@
-// RespawnManager.java
 package me.lilspojo.blockRespawn;
 
 import org.bukkit.Bukkit;

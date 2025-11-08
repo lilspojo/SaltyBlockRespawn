@@ -1,15 +1,21 @@
 # blocks:
-#   {type}:
+#   {name}:
+#     type: {type(s)} - Can be a list
 #     replace: {type}
 #     delay: {ticks}
 #     check-if-replacement: {true/false}
 
 blocks:
-  STONE:
+  Ores:
+    type:
+      - IRON_ORE
+      - GOLD_ORE
+      - DIAMOND_ORE
     replace: COBBLESTONE
     delay: 100
     check-if-replacement: false
-  COBBLESTONE:
+  Cobblestone:
+    type: COBBLESTONE
     replace: BEDROCK
     delay: 100
     check-if-replacement: true
