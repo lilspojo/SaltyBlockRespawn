@@ -3,6 +3,7 @@ package me.lilspojo.blockRespawn;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -32,7 +33,7 @@ public class RespawnManager {
         this.plugin = plugin;
     }
 
-    public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, Material replaceMaterial, long delay, boolean checkReplacement){
+    public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement){
         Bukkit.getScheduler().runTask(plugin, () -> {
 
             block.setType(replaceMaterial);
@@ -41,13 +42,14 @@ public class RespawnManager {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (!checkReplacement || block.getType()== replaceMaterial) {
                     block.setType(originalMaterial);
+                    block.setBlockData(originalData, false);
                 }
             }, delay);
 
         });
     }
 
-    public void onBlockBrokenAsPrimary(Block block, Material originalMaterial, Material replaceMaterial, long delay, boolean checkReplacement) {
+    public void onBlockBrokenAsPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement) {
 
         LocationKey key = new LocationKey(block.getLocation());
 
@@ -63,6 +65,7 @@ public class RespawnManager {
                         if (primaryType != block.getType()){
                             if (block.getLocation().getBlock().getType() == replaceMaterial || !checkReplacement) {
                                 block.getLocation().getBlock().setType(originalMaterial);
+                                block.getLocation().getBlock().setBlockData(originalData, false);
                             }
                         }
                     }, delay);
@@ -77,9 +80,9 @@ public class RespawnManager {
                 synchronized (pending) {
                     pending.remove(key);
                 }
-
                 if (block.getLocation().getBlock().getType() == replaceMaterial || !checkReplacement) {
                     block.getLocation().getBlock().setType(originalMaterial);
+                    block.getLocation().getBlock().setBlockData(originalData, false);
                 }
             }, delay);
 

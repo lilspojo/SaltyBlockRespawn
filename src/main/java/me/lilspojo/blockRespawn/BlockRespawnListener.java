@@ -9,6 +9,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -54,6 +55,7 @@ public class BlockRespawnListener implements Listener {
 
         Block block = event.getBlock();
         Material type = block.getType();
+        BlockData blockData = block.getBlockData();
 
         for (String regionName : plugin.getConfig().getStringList("regions")) {
             if (!isBlockInRegion(block, regionName)) continue;
@@ -105,10 +107,10 @@ public class BlockRespawnListener implements Listener {
                 }
 
                 if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
-                    plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, replaceMaterial, delay, checkReplacement);
+                    plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
                 }
                 else{
-                    plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, replaceMaterial, delay, checkReplacement);
+                    plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
                 }
                 break;
             }
