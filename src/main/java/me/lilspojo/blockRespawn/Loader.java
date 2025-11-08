@@ -32,14 +32,6 @@ public class Loader {
         plugin.getLogger().info("Loaded SaltyBlockRespawn configuration.");
     }
 
-
-    public void reload() {
-        plugin.reloadConfig();
-        reloadLangConfig();
-        reloadRegionConfigs();
-        plugin.getLogger().info("Reloaded SaltyBlockRespawn configuration.");
-    }
-
     private void createLangConfig() {
         langFile = new File(plugin.getDataFolder(), "lang.yml");
 
