@@ -6,16 +6,14 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitTask;
 
 
 public class BlockRespawnListener implements Listener {
@@ -40,12 +38,11 @@ public class BlockRespawnListener implements Listener {
         return region.contains(location);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event){
+
         if(event.getPlayer().getGameMode() == GameMode.CREATIVE) {
-            if (event.getPlayer().hasPermission("saltyblockrespawn.creativerespawn")) {
-                // Nothing. Allows the block respawning.
-            } else {
+            if (!event.getPlayer().hasPermission("saltyblockrespawn.creativerespawn")) {
                 return;
             }
         }
