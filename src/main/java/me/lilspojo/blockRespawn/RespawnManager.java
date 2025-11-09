@@ -44,7 +44,7 @@ public class RespawnManager {
                 if (!checkReplacement || block.getType()== replaceMaterial) {
                     block.setType(originalMaterial);
                     block.setBlockData(originalData, false);
-                    crashProtection.RemoveFromCrashProt(block, originalMaterial, originalData);
+                    crashProtection.RemoveFromCrashProt(block);
                 }
             }, delay);
 
@@ -88,7 +88,7 @@ public class RespawnManager {
                 if (block.getLocation().getBlock().getType() == replaceMaterial || !checkReplacement) {
                     block.getLocation().getBlock().setType(originalMaterial);
                     block.getLocation().getBlock().setBlockData(originalData, false);
-                    crashProtection.RemoveFromCrashProt(block, originalMaterial, originalData);
+                    crashProtection.RemoveFromCrashProt(block);
                 }
             }, delay);
 

@@ -3,7 +3,7 @@ package me.lilspojo.blockRespawn;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import org.jetbrains.annotations.NotNull;
 
 
 public final class BlockRespawn extends JavaPlugin {
@@ -35,7 +35,7 @@ public final class BlockRespawn extends JavaPlugin {
 
     }
 
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
         if(command.getName().equalsIgnoreCase("saltyblockrespawn")){
 

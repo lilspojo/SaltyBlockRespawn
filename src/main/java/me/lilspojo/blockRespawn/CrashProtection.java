@@ -20,14 +20,13 @@ public class CrashProtection {
     public CrashProtection(JavaPlugin plugin) {
         this.plugin = plugin;
 
-        // File in plugin's folder
         dataFile = new File(plugin.getDataFolder(), "crash-protection.data");
         if (!dataFile.exists()) {
             try {
-                dataFile.getParentFile().mkdirs(); // create folder if missing
+                dataFile.getParentFile().mkdirs();
                 dataFile.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                plugin.getLogger().severe("Failed to create crash-protection.data: " + e.getMessage());
             }
         }
         dataConfig = YamlConfiguration.loadConfiguration(dataFile);
@@ -43,7 +42,7 @@ public class CrashProtection {
 
     }
 
-    public void RemoveFromCrashProt(Block block, Material originalMaterial, BlockData originalData){
+    public void RemoveFromCrashProt(Block block){
 
         dataConfig = YamlConfiguration.loadConfiguration(dataFile);
         String key = getLocationKey(block);
@@ -60,7 +59,7 @@ public class CrashProtection {
         try {
             dataConfig.save(dataFile);
         } catch (IOException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("Failed to save crash-protection.data: " + e.getMessage());
         }
     }
     public void RunCrashProt() {
@@ -88,7 +87,7 @@ public class CrashProtection {
                 try {
                     dataConfig.save(dataFile);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    plugin.getLogger().severe("Failed to respawn from crash-protection.data: " + e.getMessage());
                 }
             });
         }

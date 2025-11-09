@@ -69,58 +69,56 @@ public class BlockRespawnListener implements Listener {
                 plugin.getLogger().warning("No 'blocks' section in region config: " + regionName);
                 continue;
             }
+            if (blocksSection != null){
+                for (String key : blocksSection.getKeys(false)) {
+                    ConfigurationSection blockGroup = blocksSection.getConfigurationSection(key);
+                    if (blockGroup == null) continue;
+                    Object typeObj = blockGroup.get("type");
+                    List<String> types;
 
-            for (String key : blocksSection.getKeys(false)) {
-                ConfigurationSection blockGroup = blocksSection.getConfigurationSection(key);
-                if (blockGroup == null) continue;
-                Object typeObj = blockGroup.get("type");
-                List<String> types;
+                    if (typeObj instanceof List) {
+                        types = ((List<?>) typeObj).stream()
+                                .map(Object::toString)
+                                .collect(Collectors.toList());
+                    } else if (typeObj != null){
+                        types = Collections.singletonList(typeObj.toString());
+                    } else {
+                        plugin.getLogger().warning("No 'type' defined in block group '" + key + "' for region " + regionName);
+                        continue;
+                    }
 
-                if (typeObj instanceof List) {
-                    types = ((List<?>) typeObj).stream()
-                            .map(Object::toString)
-                            .collect(Collectors.toList());
-                } else if (typeObj != null){
-                    types = Collections.singletonList(typeObj.toString());
-                } else {
-                    plugin.getLogger().warning("No 'type' defined in block group '" + key + "' for region " + regionName);
-                    continue;
+                    // Check is block type is listed.
+                    if (!types.contains(type.name())) continue;
+
+                    // Read block replacement properties.
+                    String replace = blockGroup.getString("replace");
+                    int delay = blockGroup.getInt("delay", 0);
+                    boolean checkReplacement = blockGroup.getBoolean("check-if-replacement", false);
+
+                    if (replace == null || replace.isEmpty()) {
+                        plugin.getLogger().warning("Missing 'replace' value in region " + regionName + " for group " + key);
+                        continue;
+                    }
+
+                    Material replaceMaterial;
+                    try {
+                        replaceMaterial = Material.valueOf(replace);
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
+                        return;
+                    }
+
+                    if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
+                        plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
+                        // Crash protection is handled within onBlockBrokenAsPrimary.
+                    }
+                    else{
+                        plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
+                        crashProtection.AddToCrashProt(block, type, blockData);
+                    }
+                    break;
                 }
-
-                // Check is block type is listed.
-                if (!types.contains(type.name())) continue;
-
-                // Read block replacement properties.
-                String replace = blockGroup.getString("replace");
-                int delay = blockGroup.getInt("delay", 0);
-                boolean checkReplacement = blockGroup.getBoolean("check-if-replacement", false);
-
-                if (replace == null || replace.isEmpty()) {
-                    plugin.getLogger().warning("Missing 'replace' value in region " + regionName + " for group " + key);
-                    continue;
-                }
-
-                Material replaceMaterial;
-                try {
-                    replaceMaterial = Material.valueOf(replace);
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
-                    return;
-                }
-
-                if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
-                    plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
-                    // Crash protection is handled within onBlockBrokenAsPrimary.
-                }
-                else{
-                    plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
-                    crashProtection.AddToCrashProt(block, type, blockData);
-                }
-                break;
             }
-
         }
-
     }
-
 }
