@@ -16,6 +16,9 @@ permissions:
   saltyblockrespawn.creativerespawn:
     description: Toggle block respawn in creative mode.
     default: true
+  saltyblockrespawn.bypass.blockprotection:
+    description: Bypass protection of non-respawning blocks.
+    default: op
 depend:
   - WorldGuard
   - WorldEdit

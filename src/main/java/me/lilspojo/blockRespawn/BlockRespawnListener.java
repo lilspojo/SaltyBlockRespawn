@@ -26,6 +26,7 @@ public class BlockRespawnListener implements Listener {
 
     private final BlockRespawn plugin;
     private final CrashProtection crashProtection;
+    private Loader loader;
 
     public BlockRespawnListener(BlockRespawn plugin){
 
@@ -88,7 +89,15 @@ public class BlockRespawnListener implements Listener {
                     }
 
                     // Check is block type is listed.
-                    if (!types.contains(type.name())) continue;
+                    if (!types.contains(type.name())) {
+                        if (plugin.getConfig().getBoolean("prevent-mining-non-respawnable")){
+                            if (!event.getPlayer().hasPermission("saltyblockrespawn.bypass.blockprotection")){
+                                loader = new Loader(plugin);
+                                event.setCancelled(true);
+                            }
+                        }
+                        continue;
+                    }
 
                     // Read block replacement properties.
                     String replace = blockGroup.getString("replace");
