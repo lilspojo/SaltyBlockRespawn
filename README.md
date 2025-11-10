@@ -39,4 +39,4 @@ Simple! SaltyBlockRespawn is a plugin which respawns broken blocks after a set a
 
 ## ❓ More About The Plugin
 
-SaltyBlockRespawn was originally created for my own Minecraft server: Salty Universe. For a long time we used Skript to handle block respawns, but always knew a real plugin would be best, but no good options existed, all being outdated ot just plain not good. So, I took matters into my own hands, and created SaltyBlockRespawn. Realizing thegap in the market, I decided I'd release the plugin for public use as well!
+SaltyBlockRespawn was originally created for my own Minecraft server: Salty Universe. For a long time we used Skript to handle block respawns, but always knew a real plugin would be best, but no good options existed, all being outdated ot just plain not good. So, I took matters into my own hands, and created SaltyBlockRespawn. Realizing the gap in the market, I decided I'd release the plugin for public use as well!
