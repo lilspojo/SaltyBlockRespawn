@@ -124,8 +124,7 @@ public class BlockRespawnListener implements Listener {
                     break;
                 }
             }
-            event.setCancelled(true);
-            if (!matched) {
+            if (!matched && plugin.getConfig().getBoolean("prevent-mining-non-respawnable", true)) {
                 event.setCancelled(true);
             }
 
