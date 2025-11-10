@@ -47,29 +47,31 @@ public final class BlockRespawn extends JavaPlugin {
 
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
 
-        if(command.getName().equalsIgnoreCase("saltyblockrespawn")){
+        if(!command.getName().equalsIgnoreCase("saltyblockrespawn")){
+            return false;
+        }
 
-            if(args.length == 0){
-                sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
+        if(args.length == 0 || !args[0].equalsIgnoreCase("reload")){
+            sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
+            return true;
+        }
+
+        if(args[0].equalsIgnoreCase("reload")){
+
+            if(!sender.hasPermission("saltyblockrespawn.reload")){
+                sender.sendMessage(loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!"));
+
                 return true;
             }
-            if(args[0].equalsIgnoreCase("reload")){
-                if(!sender.hasPermission("saltyblockrespawn.reload")){
-                    if(loader.getLangConfig().getString("no-permission-reload") != null){
-                        sender.sendMessage(loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!"));
-                    }
-                    return true;
-                }
-            }
 
-            loader = new Loader(this);
+            // Reload
             loader.reload();
-
 
             sender.sendMessage(loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!"));
             return true;
-
         }
+
+        // Unrecognized arguments
         sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
         return true;
     }

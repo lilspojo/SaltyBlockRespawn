@@ -53,12 +53,10 @@ public class Loader {
         regionsFolder = new File(plugin.getDataFolder(), "regions");
         if (!regionsFolder.exists()) {
             regionsFolder.mkdirs();
-            plugin.getLogger().info("Created 'regions' folder!");
-        }
 
-        File defaultRegionFile = new File(regionsFolder, "regions/example_region.yml");
-        if (!defaultRegionFile.exists()) {
             plugin.saveResource("regions/example_region.yml", false);
+
+            plugin.getLogger().info("Created 'regions' folder!");
         }
     }
 
@@ -69,13 +67,24 @@ public class Loader {
 
         for (String regionName : plugin.getConfig().getStringList("regions")) {
             File file = new File(regionsFolder, regionName + ".yml");
-            if (!file.exists()) {
-                plugin.saveResource("regions/" + regionName + ".yml", false);
-            }
 
             if (!file.exists()) {
-                plugin.getLogger().warning("Region config for '" + regionName + "' not found.");
-                continue;
+                plugin.getLogger().warning("Region config for '" + regionName + "' not found, creating one...");
+                try {
+                    file.getParentFile().mkdirs();
+
+                    if (plugin.getResource("regions/example_region.yml") != null) {
+
+                        copyResourceAs(plugin, file);
+                    } else {
+                        plugin.getLogger().severe("Could not find 'regions/example_region.yml' template in JAR. Cannot create file for '" + regionName + "'.");
+                        continue;
+                    }
+
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Failed to create region config for '" + regionName + "': " + e.getMessage());
+                    continue;
+                }
             }
 
             FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
@@ -94,6 +103,26 @@ public class Loader {
 
     public FileConfiguration getRegionConfig(String regionName) {
         return regionConfigs.get(regionName);
+    }
+
+    private void copyResourceAs(BlockRespawn plugin, File destinationFile) throws java.io.IOException {
+        java.io.InputStream inputStream = plugin.getResource("regions/example_region.yml");
+        if (inputStream == null) {
+            throw new java.io.IOException("Resource '" + "regions/example_region.yml" + "' not found in JAR. Please contact the developer.");
+        }
+
+        destinationFile.getParentFile().mkdirs();
+
+        try (java.io.OutputStream outputStream = new java.io.FileOutputStream(destinationFile)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+        } finally {
+            // Ensure the input stream is closed
+            try { inputStream.close(); } catch (java.io.IOException ignored) { }
+        }
     }
 
     public Map<String, FileConfiguration> getAllRegionConfigs() {
