@@ -2,8 +2,6 @@
 
 # Prevents the original block from being overwritten by subsequent respawns.
 prevent-overwrite: true
-# Prevents the mining of non respawnable blocks in a region. This is to allow disabling of WorldGuard block protection.
-prevent-mining-non-respawnable: false
 # Bypass all block respawning and block protection when in creative mode.
 creative-bypass: true
 # Regions listed here will have their own configuration sections in the regions folder.

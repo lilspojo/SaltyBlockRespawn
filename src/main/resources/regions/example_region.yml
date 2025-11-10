@@ -1,3 +1,6 @@
+# Prevents the mining of non respawnable blocks in the region. This is to allow disabling of WorldGuard block protection while still protection a region.
+prevent-mining-non-respawnable: true
+
 # blocks:
 #   {name}:
 #     type: {type(s)} - Can be a list
