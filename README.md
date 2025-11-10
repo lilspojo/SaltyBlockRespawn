@@ -20,7 +20,8 @@ Simple! SaltyBlockRespawn is a plugin which respawns broken blocks after a set a
 
 ## 🧩 Dependencies
 
-* SaltyBlockRespawn depends on WorldEdit and WorldGuard being installed for region detection.
+* WorldEdit
+* WorldGuard
 * **This plugin requires Java 21 to run.**
 
 ## ⚙️ Configuration Files
