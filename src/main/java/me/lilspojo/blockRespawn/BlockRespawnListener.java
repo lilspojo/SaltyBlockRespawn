@@ -49,7 +49,7 @@ public class BlockRespawnListener implements Listener {
         return region.contains(location);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event){
 
         if(event.getPlayer().getGameMode() == GameMode.CREATIVE) {
