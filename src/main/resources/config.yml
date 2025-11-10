@@ -1,5 +1,3 @@
-# You can toggle block respawning in creative mode per player via the permission saltyblockrespawn.creativerespawn.
-
 # Prevents the original block from being overwritten by subsequent respawns.
 prevent-overwrite: true
 # Bypass all block respawning and block protection when in creative mode.
