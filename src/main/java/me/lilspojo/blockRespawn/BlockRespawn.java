@@ -3,6 +3,7 @@ package me.lilspojo.blockRespawn;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -52,28 +53,38 @@ public final class BlockRespawn extends JavaPlugin {
         }
 
         if(args.length == 0 || !args[0].equalsIgnoreCase("reload")){
-            sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
+            String commandUsageMsg = loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload.");
+            sender.sendMessage(Utils.colorize(commandUsageMsg));
             return true;
         }
 
         if(args[0].equalsIgnoreCase("reload")){
 
             if(!sender.hasPermission("saltyblockrespawn.reload")){
-                sender.sendMessage(loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!"));
-
+                String noPermissionReloadMsg = loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!");
+                sender.sendMessage(Utils.colorize(noPermissionReloadMsg));
                 return true;
             }
 
             // Reload
             loader.reload();
 
-            sender.sendMessage(loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!"));
+            String reloadMsg = loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!");
+            sender.sendMessage(Utils.colorize(reloadMsg));
             return true;
         }
 
         // Unrecognized arguments
-        sender.sendMessage(loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload."));
+        String commandUsageMsg = loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload.");
+        sender.sendMessage(Utils.colorize(commandUsageMsg));
         return true;
+    }
+
+    public class Utils {
+        public static String colorize(String message) {
+            if (message == null) return "";
+            return ChatColor.translateAlternateColorCodes('&', message);
+        }
     }
 
     @Override
