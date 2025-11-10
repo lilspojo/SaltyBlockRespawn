@@ -26,12 +26,14 @@ public class BlockRespawnListener implements Listener {
 
     private final BlockRespawn plugin;
     private final CrashProtection crashProtection;
+    private final RespawnManager respawnManager;
     private Loader loader;
 
-    public BlockRespawnListener(BlockRespawn plugin){
+    public BlockRespawnListener(BlockRespawn plugin, CrashProtection crashProtection, RespawnManager respawnManager){
 
         this.plugin = plugin;
-        this.crashProtection = new CrashProtection(plugin);
+        this.crashProtection = crashProtection;
+        this.respawnManager = respawnManager;
 
     }
 
@@ -51,14 +53,14 @@ public class BlockRespawnListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event){
 
         if(event.getPlayer().getGameMode() == GameMode.CREATIVE) {
-            if (!event.getPlayer().hasPermission("saltyblockrespawn.creativerespawn")) {
-                return;
-            }
+            if (plugin.getConfig().getBoolean("creative-bypass")) return;
         }
 
         Block block = event.getBlock();
         Material type = block.getType();
         BlockData blockData = block.getBlockData();
+
+        boolean matched = false;
 
         for (String regionName : plugin.getConfig().getStringList("regions")) {
             if (!isBlockInRegion(block, regionName)) continue;
@@ -89,15 +91,9 @@ public class BlockRespawnListener implements Listener {
                     }
 
                     // Check is block type is listed.
-                    if (!types.contains(type.name())) {
-                        if (plugin.getConfig().getBoolean("prevent-mining-non-respawnable")){
-                            if (!event.getPlayer().hasPermission("saltyblockrespawn.bypass.blockprotection")){
-                                loader = new Loader(plugin);
-                                event.setCancelled(true);
-                            }
-                        }
-                        continue;
-                    }
+                    if (!types.contains(type.name())) continue;
+
+                    matched = true;
 
                     // Read block replacement properties.
                     String replace = blockGroup.getString("replace");
@@ -118,16 +114,21 @@ public class BlockRespawnListener implements Listener {
                     }
 
                     if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
-                        plugin.getRespawnManager().onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
+                        respawnManager.onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
                         // Crash protection is handled within onBlockBrokenAsPrimary.
                     }
                     else{
-                        plugin.getRespawnManager().onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
+                        respawnManager.onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
                         crashProtection.AddToCrashProt(block, type, blockData);
                     }
                     break;
                 }
             }
+            event.setCancelled(true);
+            if (!matched) {
+                event.setCancelled(true);
+            }
+
         }
     }
 }

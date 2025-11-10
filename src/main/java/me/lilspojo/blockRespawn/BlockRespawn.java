@@ -10,12 +10,17 @@ public final class BlockRespawn extends JavaPlugin {
 
     private Loader loader;
     private RespawnManager respawnManager;
+    private DatabaseManager databaseManager;
+    private CrashProtection crashProtection;
 
     public Loader getLoader() {
         return loader;
     }
     public RespawnManager getRespawnManager() {
         return respawnManager;
+    }
+    public CrashProtection getCrashProtection() {
+        return crashProtection;
     }
 
     @Override
@@ -26,11 +31,16 @@ public final class BlockRespawn extends JavaPlugin {
         loader = new Loader(this);
         loader.load();
 
-        respawnManager = new RespawnManager(this);
+        databaseManager = new DatabaseManager(this);
+        databaseManager.initializeDatabase();
 
-        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this), this);
-        CrashProtection crashProtection = new CrashProtection(this);
+        CrashProtection crashProtection = new CrashProtection(this, databaseManager);
         crashProtection.RunCrashProt();
+
+        respawnManager = new RespawnManager(this, crashProtection);
+
+        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this, crashProtection, respawnManager), this);
+
         getLogger().info("Enabled SaltyBlockRespawn!");
 
     }
@@ -66,10 +76,15 @@ public final class BlockRespawn extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
         getLogger().info("Disabling SaltyBlockRespawn...");
+        // Close sql database connection.
+        if (databaseManager != null) {
+            databaseManager.closeConnection();
+        }
         // Clean up pending respawn tasks.
-        if (respawnManager != null) respawnManager.cancelAll();
-
+        if (respawnManager != null) {
+            respawnManager.cancelAll();
+        }
+        getLogger().info("Disabled SaltyBlockRespawn!");
     }
 }

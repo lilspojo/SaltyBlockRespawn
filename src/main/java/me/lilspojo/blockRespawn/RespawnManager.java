@@ -30,9 +30,9 @@ public class RespawnManager {
 
     private final Map<LocationKey, PendingRespawn> pending = new ConcurrentHashMap<>();
 
-    public RespawnManager(JavaPlugin plugin) {
+    public RespawnManager(JavaPlugin plugin, CrashProtection crashProtection) {
         this.plugin = plugin;
-        this.crashProtection = new CrashProtection(plugin);
+        this.crashProtection = crashProtection;
     }
 
     public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement){
