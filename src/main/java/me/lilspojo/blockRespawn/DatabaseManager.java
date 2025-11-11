@@ -1,9 +1,10 @@
 package me.lilspojo.blockRespawn;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class DatabaseManager {
 
@@ -15,18 +16,14 @@ public class DatabaseManager {
         this.plugin = plugin;
         this.databasePath = "jdbc:sqlite:" + plugin.getDataFolder().getAbsolutePath() + "/blockdata.db";
     }
-
-
-
+    // Open SQLite DB connection & return it
     public synchronized Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
             connection = DriverManager.getConnection(databasePath);
         }
         return connection;
     }
-
-
-
+    // Initialize SQLite DB
     public void initializeDatabase() {
         try (Connection conn = getConnection()) {
             String sql = "CREATE TABLE IF NOT EXISTS respawn_blocks (" +
@@ -47,9 +44,7 @@ public class DatabaseManager {
             plugin.getLogger().severe("Could not initialize database: " + e.getMessage());
         }
     }
-
-
-
+    // Close the SQLite DB connection
     public void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {

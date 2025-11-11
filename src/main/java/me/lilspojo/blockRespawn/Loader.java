@@ -7,8 +7,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
 public class Loader {
 
     private final BlockRespawn plugin;
@@ -22,8 +20,7 @@ public class Loader {
     public Loader(BlockRespawn plugin) {
         this.plugin = plugin;
     }
-
-
+    // Load all configs
     public void load() {
         plugin.saveDefaultConfig();
         createLangConfig();
@@ -31,6 +28,7 @@ public class Loader {
         loadRegionConfigs();
         plugin.getLogger().info("Loaded SaltyBlockRespawn configuration.");
     }
+    // Reload all configs
     public void reload() {
         plugin.reloadConfig();
         reloadLangConfig();
@@ -38,7 +36,7 @@ public class Loader {
         loadRegionConfigs();
         plugin.getLogger().info("Loaded SaltyBlockRespawn configuration.");
     }
-
+    // Create & load lang.yml
     private void createLangConfig() {
         langFile = new File(plugin.getDataFolder(), "lang.yml");
 
@@ -48,7 +46,7 @@ public class Loader {
         }
         langConfig = YamlConfiguration.loadConfiguration(langFile);
     }
-
+    // Create & load example_region.yml
     private void createRegionsConfig() {
         regionsFolder = new File(plugin.getDataFolder(), "regions");
         if (!regionsFolder.exists()) {
@@ -59,7 +57,7 @@ public class Loader {
             plugin.getLogger().info("Created 'regions' folder!");
         }
     }
-
+    // Load all region configs
     private void loadRegionConfigs() {
         if (regionsFolder == null) regionsFolder = new File(plugin.getDataFolder(), "regions");
 
@@ -72,39 +70,35 @@ public class Loader {
                 plugin.getLogger().warning("Region config for '" + regionName + "' not found, creating one...");
                 try {
                     file.getParentFile().mkdirs();
-
                     if (plugin.getResource("regions/example_region.yml") != null) {
-
                         copyResourceAs(plugin, file);
                     } else {
-                        plugin.getLogger().severe("Could not find 'regions/example_region.yml' template in JAR. Cannot create file for '" + regionName + "'.");
+                        plugin.getLogger().severe("Could not find 'regions/example_region.yml' template in JAR. Cannot create file for '" + regionName + "'. Please contact the developer.");
                         continue;
                     }
-
                 } catch (Exception e) {
                     plugin.getLogger().severe("Failed to create region config for '" + regionName + "': " + e.getMessage());
                     continue;
                 }
             }
-
             FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
             regionConfigs.put(regionName, cfg);
         }
     }
-
+    // Reload lang.yml
     private void reloadLangConfig() {
         if (langFile == null) langFile = new File(plugin.getDataFolder(), "lang.yml");
         langConfig = YamlConfiguration.loadConfiguration(langFile);
     }
-
+    // Fetch lang.yml
     public FileConfiguration getLangConfig() {
         return langConfig;
     }
-
+    // Fetch regions configs
     public FileConfiguration getRegionConfig(String regionName) {
         return regionConfigs.get(regionName);
     }
-
+    // Copier for auto region config creation -- copies example_region.yml
     private void copyResourceAs(BlockRespawn plugin, File destinationFile) throws java.io.IOException {
         java.io.InputStream inputStream = plugin.getResource("regions/example_region.yml");
         if (inputStream == null) {

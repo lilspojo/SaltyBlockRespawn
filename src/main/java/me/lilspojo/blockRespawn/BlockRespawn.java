@@ -4,29 +4,21 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.ChatColor;
-import org.jetbrains.annotations.NotNull;
 
+import org.jetbrains.annotations.NotNull;
 
 public final class BlockRespawn extends JavaPlugin {
 
     private Loader loader;
     private RespawnManager respawnManager;
     private DatabaseManager databaseManager;
-    private CrashProtection crashProtection;
 
     public Loader getLoader() {
         return loader;
     }
-    public RespawnManager getRespawnManager() {
-        return respawnManager;
-    }
-    public CrashProtection getCrashProtection() {
-        return crashProtection;
-    }
 
     @Override
     public void onEnable() {
-
         getLogger().info("Enabling SaltyBlockRespawn...");
 
         loader = new Loader(this);
@@ -40,40 +32,34 @@ public final class BlockRespawn extends JavaPlugin {
 
         respawnManager = new RespawnManager(this, crashProtection);
 
-        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this, crashProtection, respawnManager), this);
+        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this, respawnManager), this);
 
         getLogger().info("Enabled SaltyBlockRespawn!");
-
     }
-
+    // Reload command
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-
-        if(!command.getName().equalsIgnoreCase("saltyblockrespawn")){
+        if (!command.getName().equalsIgnoreCase("saltyblockrespawn")){
             return false;
         }
 
-        if(args.length == 0 || !args[0].equalsIgnoreCase("reload")){
+        if (args.length == 0 || !args[0].equalsIgnoreCase("reload")){
             String commandUsageMsg = loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload.");
             sender.sendMessage(Utils.colorize(commandUsageMsg));
             return true;
         }
 
-        if(args[0].equalsIgnoreCase("reload")){
-
-            if(!sender.hasPermission("saltyblockrespawn.reload")){
+        if (args[0].equalsIgnoreCase("reload")){
+            if (!sender.hasPermission("saltyblockrespawn.reload")){
                 String noPermissionReloadMsg = loader.getLangConfig().getString("no-permission-reload", "You do not have permission to perform this command!");
                 sender.sendMessage(Utils.colorize(noPermissionReloadMsg));
                 return true;
             }
-
             // Reload
             loader.reload();
-
             String reloadMsg = loader.getLangConfig().getString("reload", "SaltyBlockRespawn configuration files reloaded!");
             sender.sendMessage(Utils.colorize(reloadMsg));
             return true;
         }
-
         // Unrecognized arguments
         String commandUsageMsg = loader.getLangConfig().getString("command-usage", "Usage: /saltyblockrespawn reload.");
         sender.sendMessage(Utils.colorize(commandUsageMsg));

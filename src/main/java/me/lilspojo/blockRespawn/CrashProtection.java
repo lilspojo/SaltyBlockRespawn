@@ -22,8 +22,7 @@ public class CrashProtection {
         this.databaseManager = databaseManager;
     }
 
-
-
+    // Add the block data to the SQLite DB
     public void AddToCrashProt(Block block, Material originalMaterial, BlockData originalData) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "INSERT OR REPLACE INTO respawn_blocks (world, x, y, z, material, data) VALUES (?, ?, ?, ?, ?, ?)";
@@ -33,20 +32,17 @@ public class CrashProtection {
                 conn = databaseManager.getConnection();
 
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
-                    // Set Location Parameters
+                    // Set location info
                     ps.setString(1, block.getWorld().getName());
                     ps.setInt(2, block.getX());
                     ps.setInt(3, block.getY());
                     ps.setInt(4, block.getZ());
-
-                    // Set Block Data Parameters
+                    // Set block data
                     ps.setString(5, originalMaterial.toString());
                     ps.setString(6, originalData.getAsString());
 
                     ps.executeUpdate();
                 }
-
             } catch (SQLException e) {
                 plugin.getLogger().severe("Failed to add block to crash protection: " + e.getMessage());
             }
@@ -54,18 +50,17 @@ public class CrashProtection {
     }
 
 
-
+    // Remove the block data from the SQLite DB
     public void RemoveFromCrashProt(Block block) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "DELETE FROM respawn_blocks WHERE world = ? AND x = ? AND y = ? AND z = ?";
 
-            Connection conn = null; // Declare the connection outside
+            Connection conn = null;
             try {
-                conn = databaseManager.getConnection(); // Get the thread-safe shared connection
+                conn = databaseManager.getConnection();
 
-                // Use try-with-resources ONLY for the PreparedStatement (ps)
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
+                    // Delete location info
                     ps.setString(1, block.getWorld().getName());
                     ps.setInt(2, block.getX());
                     ps.setInt(3, block.getY());
@@ -80,7 +75,7 @@ public class CrashProtection {
     }
 
 
-
+    // Remove all blocks from SQLite DB
     private void clearAllCrashData() {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "DELETE FROM respawn_blocks";
@@ -98,7 +93,7 @@ public class CrashProtection {
     }
 
 
-
+    // Respawn all blocks from SQLite DB
     public void RunCrashProt() {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String selectSql = "SELECT * FROM respawn_blocks";
@@ -128,6 +123,7 @@ public class CrashProtection {
                             Location loc = new Location(plugin.getServer().getWorld(worldName), x, y, z);
 
                             try {
+                                // Respawn block
                                 Material material = Material.valueOf(materialString);
                                 BlockData blockData = Bukkit.createBlockData(dataString);
                                 loc.getBlock().setType(material);

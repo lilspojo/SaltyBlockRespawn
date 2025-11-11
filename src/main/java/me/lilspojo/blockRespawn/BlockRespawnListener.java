@@ -6,6 +6,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -21,22 +22,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 public class BlockRespawnListener implements Listener {
 
     private final BlockRespawn plugin;
-    private final CrashProtection crashProtection;
     private final RespawnManager respawnManager;
-    private Loader loader;
 
-    public BlockRespawnListener(BlockRespawn plugin, CrashProtection crashProtection, RespawnManager respawnManager){
-
+    public BlockRespawnListener(BlockRespawn plugin, RespawnManager respawnManager){
         this.plugin = plugin;
-        this.crashProtection = crashProtection;
         this.respawnManager = respawnManager;
-
     }
-
+    // Check if block is in region; if so return true
     public boolean isBlockInRegion(Block block, String regionName) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionManager manager = container.get(BukkitAdapter.adapt(block.getWorld()));
@@ -48,23 +43,24 @@ public class BlockRespawnListener implements Listener {
         BlockVector3 location = BlockVector3.at(block.getX(), block.getY(), block.getZ());
         return region.contains(location);
     }
-
+    // Block break listener & handling
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event){
-
-        if(event.getPlayer().getGameMode() == GameMode.CREATIVE) {
+        // If creative-bypass is true & gamemode creative, quit task
+        if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
             if (plugin.getConfig().getBoolean("creative-bypass")) return;
         }
-
+        // Fetch block info
         Block block = event.getBlock();
         Material type = block.getType();
         BlockData blockData = block.getBlockData();
-
+        // Baseline for block prot
         boolean matched = false;
-
+        // Get region list
         for (String regionName : plugin.getConfig().getStringList("regions")) {
+            // If block isn't in listed regions, quit task
             if (!isBlockInRegion(block, regionName)) continue;
-
+            // Moving the config checks to outside onBlockBreak soon:tm:
             FileConfiguration blocks = plugin.getLoader().getRegionConfig(regionName);
 
             ConfigurationSection blocksSection = blocks.getConfigurationSection("blocks");
@@ -92,7 +88,7 @@ public class BlockRespawnListener implements Listener {
 
                     // Check is block type is listed.
                     if (!types.contains(type.name())) continue;
-
+                    // Prevent block prot; is respawnable
                     matched = true;
 
                     // Read block replacement properties.
@@ -112,18 +108,21 @@ public class BlockRespawnListener implements Listener {
                         plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
                         return;
                     }
-
+                    // If prevent-overwrite is true in config.yml, set & check primary blocks
                     if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
                         respawnManager.onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
-                        // Crash protection is handled within onBlockBrokenAsPrimary.
                     }
+                    // If prevent-overwrite is false in config.yml, treat all block respawns equal
                     else{
                         respawnManager.onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement);
-                        crashProtection.AddToCrashProt(block, type, blockData);
                     }
                     break;
                 }
+            } else {
+                plugin.getLogger().warning("Could not find 'blocks' section for region " + regionName);
+                return;
             }
+            // Block prot
             if (!matched && plugin.getLoader().getRegionConfig(regionName).getBoolean("prevent-mining-non-respawnable", true)) {
                 event.setCancelled(true);
             }
