@@ -27,9 +27,8 @@ public class CrashProtection {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "INSERT OR REPLACE INTO respawn_blocks (world, x, y, z, material, data) VALUES (?, ?, ?, ?, ?, ?)";
 
-            Connection conn = null;
             try {
-                conn = databaseManager.getConnection();
+                Connection conn = databaseManager.getConnection();
 
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     // Set location info
@@ -55,9 +54,8 @@ public class CrashProtection {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "DELETE FROM respawn_blocks WHERE world = ? AND x = ? AND y = ? AND z = ?";
 
-            Connection conn = null;
             try {
-                conn = databaseManager.getConnection();
+                Connection conn = databaseManager.getConnection();
 
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     // Delete location info
@@ -80,9 +78,8 @@ public class CrashProtection {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "DELETE FROM respawn_blocks";
 
-            Connection conn = null;
             try {
-                conn = databaseManager.getConnection();
+                Connection conn = databaseManager.getConnection();
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.executeUpdate();
                 }
@@ -98,9 +95,8 @@ public class CrashProtection {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String selectSql = "SELECT * FROM respawn_blocks";
 
-            Connection conn = null;
             try {
-                conn = databaseManager.getConnection();
+                Connection conn = databaseManager.getConnection();
 
                 try (PreparedStatement selectPs = conn.prepareStatement(selectSql);
                      ResultSet rs = selectPs.executeQuery()) {

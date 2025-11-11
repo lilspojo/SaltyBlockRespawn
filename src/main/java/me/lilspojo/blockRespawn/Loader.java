@@ -118,9 +118,4 @@ public class Loader {
             try { inputStream.close(); } catch (java.io.IOException ignored) { }
         }
     }
-
-    public Map<String, FileConfiguration> getAllRegionConfigs() {
-        return regionConfigs;
-    }
-
 }
