@@ -11,13 +11,10 @@ public class BlockPhysicsListener implements Listener {
 
     private final BlockRespawn plugin;
     private final BlockRespawnListener blockRespawnListener;
-    private Boolean creativeBypass;
-    private Boolean blockPhysicsToggle;
 
     public BlockPhysicsListener(BlockRespawn plugin, BlockRespawnListener blockRespawnListener) {
         this.plugin = plugin;
         this.blockRespawnListener = blockRespawnListener;
-        this.creativeBypass = plugin.getConfig().getBoolean("creative-bypass");
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
