@@ -12,6 +12,7 @@ public final class BlockRespawn extends JavaPlugin {
     private Loader loader;
     private RespawnManager respawnManager;
     private DatabaseManager databaseManager;
+    private BlockRespawnListener blockRespawnListener;
 
     public Loader getLoader() {
         return loader;
@@ -31,8 +32,10 @@ public final class BlockRespawn extends JavaPlugin {
         crashProtection.RunCrashProt();
 
         respawnManager = new RespawnManager(this, crashProtection);
+        blockRespawnListener = new BlockRespawnListener(this, respawnManager);
 
         getServer().getPluginManager().registerEvents(new BlockRespawnListener(this, respawnManager), this);
+        getServer().getPluginManager().registerEvents(new BlockPhysicsListener(this, blockRespawnListener), this);
 
         getLogger().info("Enabled SaltyBlockRespawn!");
     }
