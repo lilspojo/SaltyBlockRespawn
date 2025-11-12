@@ -1,6 +1,5 @@
 package me.lilspojo.blockRespawn;
 
-import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,7 +20,7 @@ public class BlockPhysicsListener implements Listener {
     public void onBlockPhysics(BlockPhysicsEvent event){
         Block block = event.getBlock();
         for (String regionName : plugin.getConfig().getStringList("regions")){
-            boolean blockPhysicsToggle = plugin.getLoader().getRegionConfig(regionName).getBoolean("prevent-block-physics");
+            boolean blockPhysicsToggle = plugin.getLoader().getRegionConfig(regionName).getBoolean("prevent-block-physics", false);
             if (blockPhysicsToggle){
                 if (blockRespawnListener.isBlockInRegion(block, regionName)){
                     event.setCancelled(true);

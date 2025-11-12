@@ -6,7 +6,7 @@
 
     <groupId>me.lilspojo</groupId>
     <artifactId>SaltyBlockRespawn</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>blockrespawn</name>
@@ -59,6 +59,14 @@
             <id>enginehub-repo</id>
             <url>https://maven.enginehub.org/repo/</url>
         </repository>
+        <repository>
+            <id>nexo-repo</id>
+            <url>https://repo.nexomc.com/releases/</url>
+        </repository>
+        <repository>
+            <id>AlessioDP</id>
+            <url>https://repo.alessiodp.com/releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -80,6 +88,13 @@
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
             <version>7.3.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nexomc</groupId>
+            <artifactId>nexo</artifactId>
+            <version>1.0.0</version>
             <scope>provided</scope>
         </dependency>
 

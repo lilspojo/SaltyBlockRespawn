@@ -1,6 +1,7 @@
 package me.lilspojo.blockRespawn;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -14,12 +15,15 @@ public class RespawnManager {
 
     private final JavaPlugin plugin;
     private final CrashProtection crashProtection;
+    private final NexoBlockChecker nexoBlockChecker;
+    private final String nexoPrefix = "nexo:";
 
     private final Map<LocationKey, PendingRespawn> pending = new ConcurrentHashMap<>();
 
-    public RespawnManager(JavaPlugin plugin, CrashProtection crashProtection) {
+    public RespawnManager(JavaPlugin plugin, CrashProtection crashProtection, NexoBlockChecker nexoBlockChecker) {
         this.plugin = plugin;
         this.crashProtection = crashProtection;
+        this.nexoBlockChecker = nexoBlockChecker;
     }
 
     private static class PendingRespawn {
@@ -34,10 +38,21 @@ public class RespawnManager {
         }
     }
     // When prevent-overwrite config is false
-    public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement){
+    public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement, String replaceID){
         Bukkit.getScheduler().runTask(plugin, () -> {
             // Set the immediate replacement block & add to crash prot DB
-            block.setType(replaceMaterial);
+            if (replaceID.startsWith(nexoPrefix)){
+                String nexoBlockId = replaceID.substring(nexoPrefix.length());
+                if (nexoBlockChecker.isNexoBlock(nexoBlockId)){
+                    Location location = block.getLocation();
+                    com.nexomc.nexo.api.NexoBlocks.place(nexoBlockId, location);
+                } else {
+                    plugin.getLogger().warning("Invalid Nexo replace material: " + replaceID);
+                }
+
+            } else {
+                block.setType(replaceMaterial);
+            }
             crashProtection.AddToCrashProt(block, originalMaterial, originalData);
             // Respawn block + block data + remove from crash prot DB
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -51,7 +66,7 @@ public class RespawnManager {
         });
     }
     // when prevent-overwrite config is true
-    public void onBlockBrokenAsPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement) {
+    public void onBlockBrokenAsPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement, String replaceID) {
 
         LocationKey key = new LocationKey(block.getLocation());
 
@@ -60,7 +75,18 @@ public class RespawnManager {
             if (pending.containsKey(key)) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     // Set the immediate replacement block
-                    block.setType(replaceMaterial);
+                    if (replaceID.startsWith(nexoPrefix)){
+                        String nexoBlockId = replaceID.substring(nexoPrefix.length());
+                        if (nexoBlockChecker.isNexoBlock(nexoBlockId)){
+                            Location location = block.getLocation();
+                            com.nexomc.nexo.api.NexoBlocks.place(nexoBlockId, location);
+                        } else {
+                            plugin.getLogger().warning("Invalid Nexo replace material: " + replaceID);
+                        }
+
+                    } else {
+                        block.setType(replaceMaterial);
+                    }
                     // Get primary block & save for replace task
                     Material primaryType = getPrimaryMaterial(block);
                     // Respawn block + block data IFF primary block hasn't respawned
@@ -78,7 +104,18 @@ public class RespawnManager {
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 // Set the immediate replacement block & add to crash prot DB
-                block.setType(replaceMaterial);
+                if (replaceID.startsWith(nexoPrefix)){
+                    String nexoBlockId = replaceID.substring(nexoPrefix.length());
+                    if (nexoBlockChecker.isNexoBlock(nexoBlockId)){
+                        Location location = block.getLocation();
+                        com.nexomc.nexo.api.NexoBlocks.place(nexoBlockId, location);
+                    } else {
+                        plugin.getLogger().warning("Invalid Nexo replace material: " + replaceID);
+                    }
+
+                } else {
+                    block.setType(replaceMaterial);
+                }
                 crashProtection.AddToCrashProt(block, originalMaterial, originalData);
             });
 
