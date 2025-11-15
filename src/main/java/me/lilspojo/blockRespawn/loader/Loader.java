@@ -1,5 +1,6 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.loader;
 
+import me.lilspojo.blockRespawn.BlockRespawn;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 

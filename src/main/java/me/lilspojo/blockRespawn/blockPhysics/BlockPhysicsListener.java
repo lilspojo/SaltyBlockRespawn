@@ -1,5 +1,7 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.blockPhysics;
 
+import me.lilspojo.blockRespawn.BlockRespawn;
+import me.lilspojo.blockRespawn.blockRespawn.BlockRespawnListener;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

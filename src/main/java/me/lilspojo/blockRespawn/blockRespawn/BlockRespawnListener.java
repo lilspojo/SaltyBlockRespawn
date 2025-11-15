@@ -1,4 +1,4 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.blockRespawn;
 
 import com.nexomc.nexo.api.NexoBlocks;
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic;
@@ -10,6 +10,8 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 
+import me.lilspojo.blockRespawn.BlockRespawn;
+import me.lilspojo.blockRespawn.nexo.NexoBlockChecker;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;

@@ -1,5 +1,6 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.crashProtection;
 
+import me.lilspojo.blockRespawn.database.DatabaseManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,7 +24,7 @@ public class CrashProtection {
     }
 
     // Add the block data to the SQLite DB
-    public void AddToCrashProt(Block block, Material originalMaterial, BlockData originalData) {
+    public void addToCrashProt(Block block, Material originalMaterial, BlockData originalData) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "INSERT OR REPLACE INTO respawn_blocks (world, x, y, z, material, data) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -50,7 +51,7 @@ public class CrashProtection {
 
 
     // Remove the block data from the SQLite DB
-    public void RemoveFromCrashProt(Block block) {
+    public void removeFromCrashProt(Block block) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String sql = "DELETE FROM respawn_blocks WHERE world = ? AND x = ? AND y = ? AND z = ?";
 
@@ -91,7 +92,7 @@ public class CrashProtection {
 
 
     // Respawn all blocks from SQLite DB
-    public void RunCrashProt() {
+    public void runCrashProt() {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             String selectSql = "SELECT * FROM respawn_blocks";
 

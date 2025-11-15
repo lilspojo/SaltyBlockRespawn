@@ -1,5 +1,8 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.blockRespawn;
 
+import me.lilspojo.blockRespawn.crashProtection.CrashProtection;
+import me.lilspojo.blockRespawn.nexo.NexoBlockChecker;
+import me.lilspojo.blockRespawn.utils.LocationKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,7 +21,7 @@ public class RespawnManager {
     private final NexoBlockChecker nexoBlockChecker;
     private final String nexoPrefix = "nexo:";
 
-    private final Map<LocationKey, PendingRespawn> pending = new ConcurrentHashMap<>();
+    private final Map<LocationKey, pendingRespawn> pending = new ConcurrentHashMap<>();
 
     public RespawnManager(JavaPlugin plugin, CrashProtection crashProtection, NexoBlockChecker nexoBlockChecker) {
         this.plugin = plugin;
@@ -26,12 +29,12 @@ public class RespawnManager {
         this.nexoBlockChecker = nexoBlockChecker;
     }
 
-    private static class PendingRespawn {
+    private static class pendingRespawn {
         final BukkitTask task;
         final Material originalMaterial;
         final Material temporaryMaterial;
 
-        PendingRespawn(BukkitTask task, Material originalMaterial, Material temporaryMaterial) {
+        pendingRespawn(BukkitTask task, Material originalMaterial, Material temporaryMaterial) {
             this.task = task;
             this.originalMaterial = originalMaterial;
             this.temporaryMaterial = temporaryMaterial;
@@ -53,13 +56,13 @@ public class RespawnManager {
             } else {
                 block.setType(replaceMaterial);
             }
-            crashProtection.AddToCrashProt(block, originalMaterial, originalData);
+            crashProtection.addToCrashProt(block, originalMaterial, originalData);
             // Respawn block + block data + remove from crash prot DB
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (!checkReplacement || block.getType()== replaceMaterial) {
                     block.setType(originalMaterial);
                     block.setBlockData(originalData, false);
-                    crashProtection.RemoveFromCrashProt(block);
+                    crashProtection.removeFromCrashProt(block);
                 }
             }, delay /* Ticks */);
 
@@ -116,7 +119,7 @@ public class RespawnManager {
                 } else {
                     block.setType(replaceMaterial);
                 }
-                crashProtection.AddToCrashProt(block, originalMaterial, originalData);
+                crashProtection.addToCrashProt(block, originalMaterial, originalData);
             });
 
             BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -128,20 +131,20 @@ public class RespawnManager {
                 if (block.getLocation().getBlock().getType() == replaceMaterial || !checkReplacement) {
                     block.getLocation().getBlock().setType(originalMaterial);
                     block.getLocation().getBlock().setBlockData(originalData, false);
-                    crashProtection.RemoveFromCrashProt(block);
+                    crashProtection.removeFromCrashProt(block);
                 }
             }, delay /* Ticks */);
-            pending.put(key, new PendingRespawn(task, originalMaterial, replaceMaterial));
+            pending.put(key, new pendingRespawn(task, originalMaterial, replaceMaterial));
         }
     }
     // Getter for material of primary block
     public Material getPrimaryMaterial(Block block) {
-        PendingRespawn pr = pending.get(new LocationKey(block.getLocation()));
+        pendingRespawn pr = pending.get(new LocationKey(block.getLocation()));
         return pr != null ? pr.originalMaterial : null;
     }
     // Cancel all pending respawn tasks
     public void cancelAll() {
-        for (PendingRespawn pendingRespawn : pending.values()) {
+        for (pendingRespawn pendingRespawn : pending.values()) {
             pendingRespawn.task.cancel();
         }
         pending.clear();

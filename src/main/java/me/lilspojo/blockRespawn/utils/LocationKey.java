@@ -1,4 +1,4 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.utils;
 
 import org.bukkit.Location;
 import java.util.Objects;

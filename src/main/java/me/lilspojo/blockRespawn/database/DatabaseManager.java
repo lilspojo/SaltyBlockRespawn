@@ -1,4 +1,4 @@
-package me.lilspojo.blockRespawn;
+package me.lilspojo.blockRespawn.database;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
