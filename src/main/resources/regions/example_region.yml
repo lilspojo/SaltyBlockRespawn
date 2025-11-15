@@ -11,7 +11,7 @@ prevent-block-physics: false
 #     check-if-replacement: {true/false}
 #
 # Nexo custom blocks are supported as types for respawn and replacement.
-# To use nexo custom blocks, use 'nexo:block_id'.
+# To use Nexo custom blocks, use 'nexo:block_id'.
 
 blocks:
   Ores:

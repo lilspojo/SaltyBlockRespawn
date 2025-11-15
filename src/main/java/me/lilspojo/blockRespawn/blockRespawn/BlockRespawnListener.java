@@ -34,19 +34,24 @@ public class BlockRespawnListener implements Listener {
     private final RespawnManager respawnManager;
     private final NexoBlockChecker nexoBlockChecker;
     private final NexoInstalledChecker nexo = new NexoInstalledChecker();
-    public boolean isNexoInstalled;
     private final String nexoPrefix = "nexo:";
+
+    public boolean isNexoInstalled;
+    private final List<String> regions;
+    private final RegionContainer container;
 
     public BlockRespawnListener(BlockRespawn plugin, RespawnManager respawnManager, NexoBlockChecker nexoBlockChecker){
         this.plugin = plugin;
         this.respawnManager = respawnManager;
         this.nexoBlockChecker = nexoBlockChecker;
+        this.regions = plugin.getConfig().getStringList("regions");
+        this.container = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
         isNexoInstalled = nexo.isNexoInstalled(plugin);
+
     }
     // Check if block is in region; if so return true
     public boolean isBlockInRegion(Block block, String regionName) {
-        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionManager manager = container.get(BukkitAdapter.adapt(block.getWorld()));
         if (manager == null) return false;
 
@@ -70,7 +75,7 @@ public class BlockRespawnListener implements Listener {
         // Baseline for block prot
         boolean isRespawnable = false;
         // Get region list
-        for (String regionName : plugin.getConfig().getStringList("regions")) {
+        for (String regionName : regions) {
             // If block isn't in listed regions, quit task
             if (!isBlockInRegion(block, regionName)) continue;
             // Moving the config checks to outside onBlockBreak soon:tm:

@@ -15,7 +15,9 @@ Simple! SaltyBlockRespawn is a plugin which respawns broken blocks after a set a
 * **Crash Protection:** If your server ever crashes and a block has not yet respawned, they will be automatically recovered on startup!
 * **Block Protection:** Prevent mining of blocks which aren't respawnable, configurable per region!
 * **Block Data Support:** Block respawns take block data into account, so block state, orientation, and custom data will be saved!
+* **Block Physics Toggle:** Prevent unwanted block physics messing up your map, cancelling the physics in the configured region!
 * **Creative Bypass:** Toggle block respawn and protection while in creative mode in the config to easily work on the map!
+* **Nexo Block Support:** Nexo custom blocks are fully supported as replacement and respawn types!
 * **High Performance:** Using async tasks wherever possible, performance never takes a hit, even with hundreds of simultaneous respawns!
 
 ## 🧩 Dependencies
