@@ -1,6 +1,7 @@
 package me.lilspojo.blockRespawn.loader;
 
 import me.lilspojo.blockRespawn.BlockRespawn;
+import me.lilspojo.blockRespawn.nexo.NexoInstalledChecker;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -18,6 +19,8 @@ public class Loader {
     private File regionsFolder;
     private final Map<String, FileConfiguration> regionConfigs = new HashMap<>();
 
+    private final NexoInstalledChecker nexo = new NexoInstalledChecker();
+
     public Loader(BlockRespawn plugin) {
         this.plugin = plugin;
     }
@@ -27,6 +30,10 @@ public class Loader {
         createLangConfig();
         createRegionsConfig();
         loadRegionConfigs();
+
+        if (nexo.isNexoInstalled(plugin)){
+            plugin.getLogger().info("Nexo detected, Enabling Nexo block support.");
+        }
         plugin.getLogger().info("Loaded SaltyBlockRespawn configuration.");
     }
     // Reload all configs

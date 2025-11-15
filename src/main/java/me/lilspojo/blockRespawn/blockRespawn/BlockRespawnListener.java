@@ -12,6 +12,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 
 import me.lilspojo.blockRespawn.BlockRespawn;
 import me.lilspojo.blockRespawn.nexo.NexoBlockChecker;
+import me.lilspojo.blockRespawn.nexo.NexoInstalledChecker;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -32,12 +33,16 @@ public class BlockRespawnListener implements Listener {
     private final BlockRespawn plugin;
     private final RespawnManager respawnManager;
     private final NexoBlockChecker nexoBlockChecker;
+    private final NexoInstalledChecker nexo = new NexoInstalledChecker();
+    public boolean isNexoInstalled;
     private final String nexoPrefix = "nexo:";
 
     public BlockRespawnListener(BlockRespawn plugin, RespawnManager respawnManager, NexoBlockChecker nexoBlockChecker){
         this.plugin = plugin;
         this.respawnManager = respawnManager;
         this.nexoBlockChecker = nexoBlockChecker;
+
+        isNexoInstalled = nexo.isNexoInstalled(plugin);
     }
     // Check if block is in region; if so return true
     public boolean isBlockInRegion(Block block, String regionName) {
@@ -101,15 +106,19 @@ public class BlockRespawnListener implements Listener {
 
                         // Check if type is nexo
                         if (configuredType.toLowerCase().startsWith(nexoPrefix)) {
-                            String expectedNexoId = configuredType.substring(nexoPrefix.length());
+                            if (!isNexoInstalled){
+                                plugin.getLogger().warning("A Nexo block type is present in '" + regionName + "' region config, but Nexo is not installed.");
+                            } else {
+                                String expectedNexoId = configuredType.substring(nexoPrefix.length());
 
-                            // Check if the broken block is nexo
-                            if (NexoBlocks.isCustomBlock(block)) {
-                                // Check is broken nexo is type
-                                CustomBlockMechanic mech = NexoBlocks.customBlockMechanic(block.getLocation());
-                                if (mech != null && expectedNexoId.equals(mech.getItemID())) {
-                                    typeMatched = true;
-                                    break;
+                                // Check if the broken block is nexo
+                                if (NexoBlocks.isCustomBlock(block)) {
+                                    // Check is broken nexo is type
+                                    CustomBlockMechanic mech = NexoBlocks.customBlockMechanic(block.getLocation());
+                                    if (mech != null && expectedNexoId.equals(mech.getItemID())) {
+                                        typeMatched = true;
+                                        break;
+                                    }
                                 }
                             }
                         } else {
@@ -139,9 +148,14 @@ public class BlockRespawnListener implements Listener {
                     Material replaceMaterial;
                     try {
                         if (replace.startsWith(nexoPrefix)) {
-                            String nexoBlockId = replace.substring(nexoPrefix.length());
-                            nexoBlockChecker.isNexoBlock(nexoBlockId);
-                            replaceMaterial = null;
+                            if (!isNexoInstalled){
+                                plugin.getLogger().warning("A Nexo block type is present in '" + regionName + "' region config, but Nexo is not installed.");
+                                continue;
+                            } else {
+                                String nexoBlockId = replace.substring(nexoPrefix.length());
+                                nexoBlockChecker.isNexoBlock(nexoBlockId);
+                                replaceMaterial = null; // Satisfy the functions needy needs
+                            }
                         } else {
                             replaceMaterial = Material.valueOf(replace);
                         }
