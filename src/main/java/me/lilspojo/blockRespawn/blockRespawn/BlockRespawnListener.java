@@ -16,6 +16,7 @@ import me.lilspojo.blockRespawn.nexo.NexoInstalledChecker;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -104,6 +105,9 @@ public class BlockRespawnListener implements Listener {
                         continue;
                     }
 
+                    // Declare baseline age variable
+                    String replaceData;
+
                     boolean typeMatched = false;
                     for (String configuredType : types) {
                         if (configuredType == null) continue;
@@ -129,9 +133,33 @@ public class BlockRespawnListener implements Listener {
                         } else {
                             // vanilla material type
                             try {
-                                if (configuredType.equalsIgnoreCase(type.name())) {
-                                    typeMatched = true;
-                                    break;
+                                if (configuredType.contains("[")){
+                                    int bracketIndex = configuredType.indexOf('[');
+                                    int endIndex = configuredType.indexOf(']');
+
+                                    Material configType = Material.getMaterial(configuredType.substring(0, bracketIndex).toUpperCase());
+
+                                    if(block.getType() == configType){
+                                        if (endIndex > bracketIndex){
+                                            try {
+                                                String blockDataString = configuredType.substring(bracketIndex + 1, endIndex);
+                                                String expectedBlockDataString = configType.name().toLowerCase() + "[" + blockDataString + "]";
+                                                BlockData expectedBlockData = plugin.getServer().createBlockData(expectedBlockDataString);
+                                                if (block.getBlockData().matches(expectedBlockData)){
+                                                    typeMatched = true;
+                                                    break;
+                                                }
+                                            } catch (IllegalArgumentException e){
+                                                plugin.getLogger().warning("Invalid block data for type '" + configuredType + "' in '" + regionName + "' region config.");
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Material configType = Material.getMaterial(configuredType.toUpperCase());
+                                    if (block.getType() == configType){
+                                        typeMatched = true;
+                                        break;
+                                    }
                                 }
                             } catch (Exception ignored) {}
                         }
@@ -146,7 +174,7 @@ public class BlockRespawnListener implements Listener {
                     boolean checkReplacement = blockGroup.getBoolean("check-if-replacement", false);
 
                     if (replace == null || replace.isEmpty()) {
-                        plugin.getLogger().warning("Missing 'replace' value in region " + regionName + " for group " + key);
+                        plugin.getLogger().warning("Missing replace value in region " + regionName + " for group " + key);
                         continue;
                     }
 
@@ -159,10 +187,29 @@ public class BlockRespawnListener implements Listener {
                             } else {
                                 String nexoBlockId = replace.substring(nexoPrefix.length());
                                 nexoBlockChecker.isNexoBlock(nexoBlockId);
+                                replaceData = "";
                                 replaceMaterial = null; // Satisfy the functions needy needs
                             }
                         } else {
-                            replaceMaterial = Material.valueOf(replace);
+                            if (replace.contains("[")){
+                                int bracketIndex = replace.indexOf('[');
+                                int endIndex = replace.indexOf(']');
+
+                                replaceData = "";
+
+                                replaceMaterial = Material.getMaterial(replace.substring(0, bracketIndex).toUpperCase());
+
+                                if (endIndex > bracketIndex){
+                                    try {
+                                        replaceData = replace.substring(bracketIndex + 1, endIndex);
+                                    } catch (IllegalArgumentException e){
+                                        plugin.getLogger().warning("Invalid block data in config: " + replace);
+                                    }
+                                }
+                            } else {
+                                replaceData = "";
+                                replaceMaterial = Material.valueOf(replace);
+                            }
                         }
                     } catch (IllegalArgumentException e) {
                         plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
@@ -170,11 +217,11 @@ public class BlockRespawnListener implements Listener {
                     }
                     // If prevent-overwrite is true in config.yml, set & check primary blocks
                     if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
-                        respawnManager.onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement, replace);
+                        respawnManager.onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement, replace, replaceData);
                     }
                     // If prevent-overwrite is false in config.yml, treat all block respawns equal
                     else{
-                        respawnManager.onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement, replace);
+                        respawnManager.onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement, replace, replaceData);
                     }
                     break;
                 }

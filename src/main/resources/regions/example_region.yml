@@ -1,8 +1,10 @@
-# Prevents the mining of non respawnable blocks in the region. This is to allow disabling of WorldGuard block protection while still protection a region.
+# Prevents the mining of non respawnable blocks in the region. This is to allow disabling of WorldGuard block protection while still protecting a region.
 prevent-mining-non-respawnable: true
 # Prevents block physics from running in the region.
 prevent-block-physics: false
 
+# {type}: Block data is supported in the format 'type[block-data]'
+#
 # blocks:
 #   {name}:
 #     type: {type(s)} - Can be a list
@@ -12,6 +14,10 @@ prevent-block-physics: false
 #
 # Nexo custom blocks are supported as types for respawn and replacement.
 # To use Nexo custom blocks, use 'nexo:block_id'.
+#
+# If a custom block plugin is not directly supported, you can still use the
+# custom blocks from the plugin via block data, or you can request for us to
+# add direct support on our GitHub https://github.com/lilspojo/SaltyBlockRespawn/issues
 
 blocks:
   Ores:
@@ -27,3 +33,8 @@ blocks:
     replace: BEDROCK
     delay: 100
     check-if-replacement: true
+  Wheat:
+    type: WHEAT[age=7]
+    replace: WHEAT[age=0]
+    delay: 100
+    check-if-replacement: false

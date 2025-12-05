@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -41,7 +42,7 @@ public class RespawnManager {
         }
     }
     // When prevent-overwrite config is false
-    public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement, String replaceID){
+    public void onBlockBrokenNoPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement, String replaceID, String replaceData){
         Bukkit.getScheduler().runTask(plugin, () -> {
             // Set the immediate replacement block & add to crash prot DB
             if (replaceID.startsWith(nexoPrefix)){
@@ -55,6 +56,17 @@ public class RespawnManager {
 
             } else {
                 block.setType(replaceMaterial);
+                if (!replaceData.isEmpty()){
+                    try {
+                        String fullBlockDataString = replaceMaterial.name().toLowerCase() + "[" + replaceData + "]";
+                        BlockData replacementData = plugin.getServer().createBlockData(fullBlockDataString);
+                        block.setBlockData(replacementData);
+                    } catch (IllegalArgumentException e){
+                        plugin.getLogger().warning("Failed to apply BlockData '" + replaceData +
+                                "' to material '" + replaceMaterial.name() +
+                                "' during block respawn. Error: " + e.getMessage());
+                    }
+                }
             }
             crashProtection.addToCrashProt(block, originalMaterial, originalData);
             // Respawn block + block data + remove from crash prot DB
@@ -69,7 +81,7 @@ public class RespawnManager {
         });
     }
     // when prevent-overwrite config is true
-    public void onBlockBrokenAsPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement, String replaceID) {
+    public void onBlockBrokenAsPrimary(Block block, Material originalMaterial, BlockData originalData, Material replaceMaterial, long delay, boolean checkReplacement, String replaceID, String replaceData) {
 
         LocationKey key = new LocationKey(block.getLocation());
 
@@ -89,6 +101,17 @@ public class RespawnManager {
 
                     } else {
                         block.setType(replaceMaterial);
+                        if (!replaceData.isEmpty()){
+                            try {
+                                String fullBlockDataString = replaceMaterial.name().toLowerCase() + "[" + replaceData + "]";
+                                BlockData replacementData = plugin.getServer().createBlockData(fullBlockDataString);
+                                block.setBlockData(replacementData);
+                            } catch (IllegalArgumentException e){
+                                plugin.getLogger().warning("Failed to apply BlockData '" + replaceData +
+                                        "' to material '" + replaceMaterial.name() +
+                                        "' during block respawn. Error: " + e.getMessage());
+                            }
+                        }
                     }
                     // Get primary block & save for replace task
                     Material primaryType = getPrimaryMaterial(block);
@@ -118,6 +141,17 @@ public class RespawnManager {
 
                 } else {
                     block.setType(replaceMaterial);
+                    if (!replaceData.isEmpty()){
+                        try {
+                            String fullBlockDataString = replaceMaterial.name().toLowerCase() + "[" + replaceData + "]";
+                            BlockData replacementData = plugin.getServer().createBlockData(fullBlockDataString);
+                            block.setBlockData(replacementData);
+                        } catch (IllegalArgumentException e){
+                            plugin.getLogger().warning("Failed to apply BlockData '" + replaceData +
+                                    "' to material '" + replaceMaterial.name() +
+                                    "' during block respawn. Error: " + e.getMessage());
+                        }
+                    }
                 }
                 crashProtection.addToCrashProt(block, originalMaterial, originalData);
             });
