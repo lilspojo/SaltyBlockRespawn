@@ -16,7 +16,6 @@ import me.lilspojo.blockRespawn.nexo.NexoInstalledChecker;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -105,7 +104,7 @@ public class BlockRespawnListener implements Listener {
                         continue;
                     }
 
-                    // Declare baseline age variable
+                    // Declare baseline block data variable
                     String replaceData;
 
                     boolean typeMatched = false;
