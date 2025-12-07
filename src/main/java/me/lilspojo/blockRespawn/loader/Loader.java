@@ -131,8 +131,8 @@ public class Loader {
                     ConfigurationSection group = blocks.getConfigurationSection(key);
                     if (group == null) continue;
 
-                    BlockRule rule = parseBlockRule(group);
-                    settings.rules.add(rule);
+                    List<BlockRule> rules = parseBlockRule(group);
+                    settings.rules.addAll(rules);
                 }
             }
             cachedRegionSettings.put(region, settings);
@@ -140,10 +140,9 @@ public class Loader {
     }
 
 
-    private BlockRule parseBlockRule(ConfigurationSection configurationSection) {
+    private List<BlockRule> parseBlockRule(ConfigurationSection configurationSection) {
 
-        BlockRule rule = new BlockRule();
-        rule.materials = new ArrayList<>();
+        List<BlockRule> rules = new ArrayList<>();
 
         Object typeObj = configurationSection.get("type");
 
@@ -154,46 +153,59 @@ public class Loader {
         } else {
             types = Collections.singletonList(typeObj.toString());
         }
-
+        // Type data
         for (String typeString : types) {
-
             typeString = typeString.trim();
+
+            BlockRule rule = new BlockRule();
+
             // If nexo type
             if (typeString.startsWith("nexo:")) {
                 rule.isNexo = true;
                 rule.nexoId = typeString.substring("nexo:".length());
-                continue;
             }
-            // If blockdata defined
-            if (typeString.contains("[")) {
+            // If block data defined
+            else if (typeString.contains("[")) {
                 try {
-                    rule.materials.add(Material.valueOf(typeString.substring(0, typeString.indexOf('['))));
-                    rule.blockData = Bukkit.createBlockData(typeString);
+                    String materialString = typeString.substring(0, typeString.indexOf('['));
+                    String properties = typeString.substring(typeString.indexOf('['));
+                    Material material = Material.valueOf(materialString.toUpperCase());
+                    rule.material = material;
+                    rule.blockData = Bukkit.createBlockData(material, properties);
                 } catch (Exception e) {
                     plugin.getLogger().warning("Invalid blockdata: " + typeString);
                 }
-            } else {
-                rule.materials.add(Material.valueOf(typeString));
+            }
+            // If normal type
+            else {
+                rule.material = (Material.valueOf(typeString.toUpperCase()));
+            }
+            String replaceString = configurationSection.getString("replace");
+
+            // If replace nexo
+            if (replaceString.startsWith("nexo:")) {
+                rule.replaceIsNexo = true;
+                rule.replaceNexoId = replaceString.substring("nexo:".length());
+            }
+            // If replace block data defined
+            else if (replaceString.contains("[")) {
+                String materialString = replaceString.substring(0, replaceString.indexOf('['));
+                String properties = replaceString.substring(replaceString.indexOf('['));
+                Material material = Material.valueOf(materialString.toUpperCase());
+                rule.replaceMaterial = material;
+                rule.replaceBlockData = Bukkit.createBlockData(material, properties);
+            }
+            // If replace normal type
+            else {
+                rule.replaceMaterial = Material.valueOf(replaceString.toUpperCase());
             }
 
+            rule.delay = configurationSection.getInt("delay", 20);
+            rule.checkReplacement = configurationSection.getBoolean("check-if-replacement", false);
+
+            rules.add(rule);
         }
-
-        String replaceString = configurationSection.getString("replace");
-
-        if (replaceString.startsWith("nexo:")) {
-            rule.replaceIsNexo = true;
-            rule.replaceNexoId = replaceString.substring("nexo:".length());
-        } else if (replaceString.contains("[")) {
-            rule.replaceMaterial = Material.valueOf(replaceString.substring(0, replaceString.indexOf('[')));
-            rule.replaceBlockData = Bukkit.createBlockData(replaceString);
-        } else {
-            rule.replaceMaterial = Material.valueOf(replaceString);
-        }
-
-        rule.delay = configurationSection.getInt("delay", 20);
-        rule.checkReplacement = configurationSection.getBoolean("check-if-replacement", false);
-
-        return rule;
+        return rules;
     }
 
 
@@ -211,6 +223,10 @@ public class Loader {
     // Fetch regions configs
     public FileConfiguration getRegionConfig(String regionName) {
         return regionConfigs.get(regionName);
+    }
+    // Fetch region settings
+    public Map<String, RegionSettings> getCachedRegionSettings() {
+        return cachedRegionSettings;
     }
 
 

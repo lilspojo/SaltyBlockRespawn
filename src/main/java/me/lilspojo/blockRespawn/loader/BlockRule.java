@@ -11,7 +11,7 @@ public class BlockRule {
     public boolean isNexo;
     public String nexoId;
 
-    public List<Material> materials;
+    public Material material;
     public BlockData blockData;
 
     // Replace info

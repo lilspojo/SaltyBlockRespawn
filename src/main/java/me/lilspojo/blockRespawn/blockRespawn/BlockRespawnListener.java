@@ -2,7 +2,6 @@ package me.lilspojo.blockRespawn.blockRespawn;
 
 import com.nexomc.nexo.api.NexoBlocks;
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic;
-
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
@@ -11,45 +10,51 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 
 import me.lilspojo.blockRespawn.BlockRespawn;
-import me.lilspojo.blockRespawn.nexo.NexoBlockChecker;
+import me.lilspojo.blockRespawn.loader.BlockRule;
+import me.lilspojo.blockRespawn.loader.Loader;
+import me.lilspojo.blockRespawn.loader.RegionSettings;
 import me.lilspojo.blockRespawn.nexo.NexoInstalledChecker;
+
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.configuration.file.FileConfiguration;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class BlockRespawnListener implements Listener {
 
     private final BlockRespawn plugin;
     private final RespawnManager respawnManager;
-    private final NexoBlockChecker nexoBlockChecker;
-    private final NexoInstalledChecker nexo = new NexoInstalledChecker();
+
+    private final Loader loader;
     private final String nexoPrefix = "nexo:";
 
-    public boolean isNexoInstalled;
-    private final List<String> regions;
+    public final boolean isNexoInstalled;
+    private final List<String> configuredRegions;
     private final RegionContainer container;
 
-    public BlockRespawnListener(BlockRespawn plugin, RespawnManager respawnManager, NexoBlockChecker nexoBlockChecker){
+    private final Map<String, RegionSettings> cachedRegionSettings;
+
+    public BlockRespawnListener(BlockRespawn plugin, RespawnManager respawnManager) {
         this.plugin = plugin;
         this.respawnManager = respawnManager;
-        this.nexoBlockChecker = nexoBlockChecker;
-        this.regions = plugin.getConfig().getStringList("regions");
+        this.loader = plugin.getLoader();
+        this.configuredRegions = plugin.getConfig().getStringList("regions");
         this.container = WorldGuard.getInstance().getPlatform().getRegionContainer();
 
-        isNexoInstalled = nexo.isNexoInstalled(plugin);
+        NexoInstalledChecker nexo = new NexoInstalledChecker();
+        this.isNexoInstalled = nexo.isNexoInstalled(plugin);
 
+        // Fetch settings from loader
+        this.cachedRegionSettings = loader.getCachedRegionSettings();
     }
+
     // Check if block is in region; if so return true
     public boolean isBlockInRegion(Block block, String regionName) {
         RegionManager manager = container.get(BukkitAdapter.adapt(block.getWorld()));
@@ -61,178 +66,139 @@ public class BlockRespawnListener implements Listener {
         BlockVector3 location = BlockVector3.at(block.getX(), block.getY(), block.getZ());
         return region.contains(location);
     }
+
     // Block break listener & handling
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent event){
+    public void onBlockBreak(BlockBreakEvent event) {
         // If creative-bypass is true & gamemode creative, quit task
-        if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
-            if (plugin.getConfig().getBoolean("creative-bypass")) return;
+        if (plugin.getConfig().getBoolean("creative-bypass", true) && event.getPlayer().getGameMode() == GameMode.CREATIVE) {
+            return;
         }
-        // Fetch block info
-        Block block = event.getBlock();
-        Material type = block.getType();
-        BlockData blockData = block.getBlockData();
-        // Baseline for block prot
-        boolean isRespawnable = false;
-        // Get region list
-        for (String regionName : regions) {
-            // If block isn't in listed regions, quit task
-            if (!isBlockInRegion(block, regionName)) continue;
-            // Moving the config checks to outside onBlockBreak soon:tm:
-            FileConfiguration blocks = plugin.getLoader().getRegionConfig(regionName);
 
-            ConfigurationSection blocksSection = blocks.getConfigurationSection("blocks");
-            if (blocks.getConfigurationSection("blocks") == null) {
-                plugin.getLogger().warning("No 'blocks' section in region config: " + regionName);
+        Block block = event.getBlock();
+        Material blockType = block.getType();
+        BlockData blockData = block.getBlockData();
+
+        // Loop through configured regions
+        for (String regionName : configuredRegions) {
+
+            if (!isBlockInRegion(block, regionName)) continue;
+
+            // Get region settings
+            RegionSettings settings = cachedRegionSettings.get(regionName);
+
+            if (settings == null) {
+                plugin.getLogger().warning("Could not find cached settings for region: " + regionName);
                 continue;
             }
-            if (blocksSection != null){
-                for (String key : blocksSection.getKeys(false)) {
-                    ConfigurationSection blockGroup = blocksSection.getConfigurationSection(key);
-                    if (blockGroup == null) continue;
-                    Object typeObj = blockGroup.get("type");
-                    List<String> types;
 
-                    if (typeObj instanceof List) {
-                        types = ((List<?>) typeObj).stream()
-                                .map(Object::toString)
-                                .collect(Collectors.toList());
-                    } else if (typeObj != null){
-                        types = Collections.singletonList(typeObj.toString());
-                    } else {
-                        plugin.getLogger().warning("No 'type' defined in block group '" + key + "' for region " + regionName);
-                        continue;
-                    }
+            // Check for block match
+            BlockRule matchedRule = null;
 
-                    // Declare baseline block data variable
-                    String replaceData;
-
-                    boolean typeMatched = false;
-                    for (String configuredType : types) {
-                        if (configuredType == null) continue;
-                        configuredType = configuredType.trim();
-
-                        // Check if type is nexo
-                        if (configuredType.toLowerCase().startsWith(nexoPrefix)) {
-                            if (!isNexoInstalled){
-                                plugin.getLogger().warning("A Nexo block type is present in '" + regionName + "' region config, but Nexo is not installed.");
-                            } else {
-                                String expectedNexoId = configuredType.substring(nexoPrefix.length());
-
-                                // Check if the broken block is nexo
-                                if (NexoBlocks.isCustomBlock(block)) {
-                                    // Check is broken nexo is type
-                                    CustomBlockMechanic mech = NexoBlocks.customBlockMechanic(block.getLocation());
-                                    if (mech != null && expectedNexoId.equals(mech.getItemID())) {
-                                        typeMatched = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        } else {
-                            // vanilla material type
-                            try {
-                                if (configuredType.contains("[")){
-                                    int bracketIndex = configuredType.indexOf('[');
-                                    int endIndex = configuredType.indexOf(']');
-
-                                    Material configType = Material.getMaterial(configuredType.substring(0, bracketIndex).toUpperCase());
-
-                                    if(block.getType() == configType){
-                                        if (endIndex > bracketIndex){
-                                            try {
-                                                String blockDataString = configuredType.substring(bracketIndex + 1, endIndex);
-                                                String expectedBlockDataString = configType.name().toLowerCase() + "[" + blockDataString + "]";
-                                                BlockData expectedBlockData = plugin.getServer().createBlockData(expectedBlockDataString);
-                                                if (block.getBlockData().matches(expectedBlockData)){
-                                                    typeMatched = true;
-                                                    break;
-                                                }
-                                            } catch (IllegalArgumentException e){
-                                                plugin.getLogger().warning("Invalid block data for type '" + configuredType + "' in '" + regionName + "' region config.");
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    Material configType = Material.getMaterial(configuredType.toUpperCase());
-                                    if (block.getType() == configType){
-                                        typeMatched = true;
-                                        break;
-                                    }
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                    }
-                    if (!typeMatched) continue;
-                    // Prevent block prot; is respawnable
-                    isRespawnable = true;
-
-                    // Read block replacement properties.
-                    String replace = blockGroup.getString("replace");
-                    int delay = blockGroup.getInt("delay", 0);
-                    boolean checkReplacement = blockGroup.getBoolean("check-if-replacement", false);
-
-                    if (replace == null || replace.isEmpty()) {
-                        plugin.getLogger().warning("Missing replace value in region " + regionName + " for group " + key);
-                        continue;
-                    }
-
-                    Material replaceMaterial;
-                    try {
-                        if (replace.startsWith(nexoPrefix)) {
-                            if (!isNexoInstalled){
-                                plugin.getLogger().warning("A Nexo block type is present in '" + regionName + "' region config, but Nexo is not installed.");
-                                continue;
-                            } else {
-                                String nexoBlockId = replace.substring(nexoPrefix.length());
-                                nexoBlockChecker.isNexoBlock(nexoBlockId);
-                                replaceData = "";
-                                replaceMaterial = null; // Satisfy the functions needy needs
-                            }
-                        } else {
-                            if (replace.contains("[")){
-                                int bracketIndex = replace.indexOf('[');
-                                int endIndex = replace.indexOf(']');
-
-                                replaceData = "";
-
-                                replaceMaterial = Material.getMaterial(replace.substring(0, bracketIndex).toUpperCase());
-
-                                if (endIndex > bracketIndex){
-                                    try {
-                                        replaceData = replace.substring(bracketIndex + 1, endIndex);
-                                    } catch (IllegalArgumentException e){
-                                        plugin.getLogger().warning("Invalid block data in config: " + replace);
-                                    }
-                                }
-                            } else {
-                                replaceData = "";
-                                replaceMaterial = Material.valueOf(replace);
-                            }
-                        }
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid replace material in region " + regionName + ": " + replace);
-                        return;
-                    }
-                    // If prevent-overwrite is true in config.yml, set & check primary blocks
-                    if (plugin.getConfig().getBoolean("prevent-overwrite", true)){
-                        respawnManager.onBlockBrokenAsPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement, replace, replaceData);
-                    }
-                    // If prevent-overwrite is false in config.yml, treat all block respawns equal
-                    else{
-                        respawnManager.onBlockBrokenNoPrimary(block, type, blockData, replaceMaterial, delay, checkReplacement, replace, replaceData);
-                    }
+            for (BlockRule rule : settings.rules) {
+                if (isBlockMatchingRule(block, rule)) {
+                    matchedRule = rule;
                     break;
                 }
-            } else {
-                plugin.getLogger().warning("Could not find 'blocks' section for region " + regionName);
-                return;
-            }
-            // Block prot
-            if (!isRespawnable && plugin.getLoader().getRegionConfig(regionName).getBoolean("prevent-mining-non-respawnable", true)) {
-                event.setCancelled(true);
             }
 
+            // Block respawning
+            if (matchedRule != null) {
+                executeRespawnAction(block, blockType, blockData, matchedRule);
+                return;
+            }
+
+            // Block protection
+            if (settings.preventMiningNonRespawnable) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    private boolean isBlockMatchingRule(Block block, BlockRule rule) {
+        // Nexo block match
+        if (rule.isNexo) {
+            if (!isNexoInstalled) return false;
+            if (NexoBlocks.isCustomBlock(block)) {
+                CustomBlockMechanic mech = NexoBlocks.customBlockMechanic(block.getLocation());
+                return mech != null && rule.nexoId.equals(mech.getItemID());
+            }
+            return false;
+        }
+
+        // Vanilla block match
+        if (rule.material == block.getType()) {
+            if (rule.blockData != null) {
+                return block.getBlockData().matches(rule.blockData);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private void executeRespawnAction(Block block, Material blockType, BlockData blockData, BlockRule rule) {
+        // Replace material
+        Material replaceMaterial = rule.replaceMaterial;
+
+        // Replace string (full)
+        String replaceString;
+
+        // Replace string (block data only)
+        String replaceDataString;
+
+        if (rule.replaceIsNexo) {
+            replaceString = nexoPrefix + rule.replaceNexoId;
+            replaceDataString = "";
+            // Set to null for Nexo as not utilized
+            replaceMaterial = null;
+        } else {
+            // If replaceBlockData is set, reconstruct full string
+            if (rule.replaceBlockData != null) {
+                // Reconstruct replace string
+                replaceString = rule.replaceBlockData.getAsString();
+
+                // Extract replace block data
+                String fullData = rule.replaceBlockData.getAsString(false);
+                int bracketIndex = fullData.indexOf('[');
+                int endIndex = fullData.indexOf(']');
+
+                if (bracketIndex != -1 && endIndex != -1) {
+                    replaceDataString = fullData.substring(bracketIndex + 1, endIndex);
+                } else {
+                    replaceDataString = "";
+                }
+            } else {
+                replaceString = rule.replaceMaterial.name();
+                replaceDataString = "";
+            }
+        }
+
+        boolean preventOverwrite = plugin.getConfig().getBoolean("prevent-overwrite", true);
+
+        if (preventOverwrite) {
+            respawnManager.onBlockBrokenAsPrimary(
+                    block,
+                    blockType,
+                    blockData,
+                    replaceMaterial,
+                    rule.delay,
+                    rule.checkReplacement,
+                    replaceString,
+                    replaceDataString
+            );
+        } else {
+            respawnManager.onBlockBrokenNoPrimary(
+                    block,
+                    blockType,
+                    blockData,
+                    replaceMaterial,
+                    rule.delay,
+                    rule.checkReplacement,
+                    replaceString,
+                    replaceDataString
+            );
         }
     }
 }

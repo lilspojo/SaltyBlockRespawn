@@ -42,9 +42,9 @@ public final class BlockRespawn extends JavaPlugin {
         nexoBlockChecker = new NexoBlockChecker();
 
         respawnManager = new RespawnManager(this, crashProtection, nexoBlockChecker);
-        blockRespawnListener = new BlockRespawnListener(this, respawnManager, nexoBlockChecker);
+        blockRespawnListener = new BlockRespawnListener(this, respawnManager);
 
-        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this, respawnManager, nexoBlockChecker), this);
+        getServer().getPluginManager().registerEvents(new BlockRespawnListener(this, respawnManager), this);
         getServer().getPluginManager().registerEvents(new BlockPhysicsListener(this, blockRespawnListener), this);
 
         getLogger().info("Enabled SaltyBlockRespawn!");
