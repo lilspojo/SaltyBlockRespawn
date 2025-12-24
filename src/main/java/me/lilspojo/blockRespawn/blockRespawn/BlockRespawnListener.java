@@ -15,14 +15,20 @@ import me.lilspojo.blockRespawn.loader.Loader;
 import me.lilspojo.blockRespawn.loader.RegionSettings;
 import me.lilspojo.blockRespawn.nexo.NexoInstalledChecker;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
+
+import me.lilspojo.saltyForge.SaltyForge;
 
 import java.util.List;
 import java.util.Map;
@@ -105,6 +111,45 @@ public class BlockRespawnListener implements Listener {
             // Block respawning
             if (matchedRule != null) {
                 executeRespawnAction(block, blockType, blockData, matchedRule);
+
+                if (matchedRule.dropCustom) {
+                    String dropString = matchedRule.dropType;
+                    ItemStack item = null;
+                    if (dropString.contains("saltyforge") && Bukkit.getPluginManager().getPlugin("SaltyForge") != null && Bukkit.getPluginManager().getPlugin("SaltyForge").isEnabled()) {
+                        SaltyForge forge = (SaltyForge) Bukkit.getPluginManager().getPlugin("SaltyForge");
+
+                        String itemId = dropString.split(":")[1];
+                        item = forge.getItem().getItemStack(itemId);
+
+                        event.setDropItems(false);
+                        if (item != null) {
+                            Location loc = block.getLocation().add(0.5, 0.5, 0.5);
+                            block.getWorld().dropItemNaturally(loc, item);
+                        } else {
+                            plugin.getLogger().warning("Configured drop '" + dropString + "' does not exist.");
+                        }
+                    } else {
+                        if (dropString.contains("saltyforge")){
+                            plugin.getLogger().warning("SaltyForge must be present to use SaltyForge item types.");
+                            return;
+                        }
+
+                        Material itemMaterial = Material.matchMaterial(dropString);
+                        if (itemMaterial != null) {
+                            item = new ItemStack(itemMaterial);
+                        } else {
+                            plugin.getLogger().warning("Configured drop '" + dropString + "' does not exist.");
+                        }
+
+                        event.setDropItems(false);
+                        if (item != null) {
+                            Location loc = block.getLocation().add(0.5, 0.5, 0.5);
+                            block.getWorld().dropItemNaturally(loc, item);
+                        } else {
+                            plugin.getLogger().warning("Configured drop '" + dropString + "' does not exist.");
+                        }
+                    }
+                }
                 return;
             }
 

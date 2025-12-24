@@ -18,6 +18,9 @@ prevent-block-physics: false
 # If a custom block plugin is not directly supported, you can still use the
 # custom blocks from the plugin via block data, or you can request for us to
 # add direct support on our GitHub https://github.com/lilspojo/SaltyBlockRespawn/issues
+#
+# SaltyForge custom items are supported as types for block drops. To use these
+# custom item types, use 'saltyforge:item_id'.
 
 blocks:
   Ores:
@@ -28,13 +31,22 @@ blocks:
     replace: COBBLESTONE
     delay: 100
     check-if-replacement: false
+    drops:
+      custom: true
+      type: EMERALD
   Cobblestone:
     type: COBBLESTONE
     replace: BEDROCK
     delay: 100
     check-if-replacement: true
+    drops:
+      custom: false
+      type: []
   Wheat:
     type: WHEAT[age=7]
     replace: WHEAT[age=0]
     delay: 100
     check-if-replacement: false
+    drops:
+      custom: false
+      type: []

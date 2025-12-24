@@ -203,6 +203,9 @@ public class Loader {
             rule.delay = configurationSection.getInt("delay", 20);
             rule.checkReplacement = configurationSection.getBoolean("check-if-replacement", false);
 
+            rule.dropCustom = configurationSection.getBoolean("drops.custom", false);
+            rule.dropType = configurationSection.getString("drops.type", "AIR");
+
             rules.add(rule);
         }
         return rules;

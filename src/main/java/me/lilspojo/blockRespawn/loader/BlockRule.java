@@ -24,6 +24,8 @@ public class BlockRule {
     // Delay / config
     public int delay;
     public boolean checkReplacement;
+
+    // Drops
+    public boolean dropCustom;
+    public String dropType;
 }
-
-
